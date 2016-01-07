@@ -11,6 +11,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class Server extends UnicastRemoteObject implements Server_itf {
 
+    static final long serialVersionUID = 20151227171455L;
+
     private HashMap<Integer, ServerObject> s_objs;
     private HashMap<String, Integer> hm_name;
     private ReentrantLock mutex;
