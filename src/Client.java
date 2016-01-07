@@ -51,6 +51,7 @@ public class Client extends UnicastRemoteObject implements Client_itf {
         }
 
         objects = new HashMap<Integer, SharedObject>();
+        mutex = new ReentrantLock();
     }
 
     // lookup in the name server
