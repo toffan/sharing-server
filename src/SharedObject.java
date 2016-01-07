@@ -1,6 +1,8 @@
-import java.io.*;
+import java.io.Serializable;
+
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.Condition;
+
 
 public class SharedObject implements Serializable, SharedObject_itf {
 

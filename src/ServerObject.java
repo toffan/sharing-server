@@ -1,6 +1,7 @@
 import java.rmi.RemoteException;
 import java.util.LinkedList;
 
+
 public class ServerObject {
 
     private enum SState {
