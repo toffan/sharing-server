@@ -66,4 +66,26 @@ public class Server extends UnicastRemoteObject implements Server_itf {
         obj.lock_write(client);
         return obj.getObj();
     }
+
+    public static void main(String[] args) {
+        Server srv;
+        System.out.println("Starting server...");
+
+        try {
+            System.out.println("Creating registry...");
+            LocateRegistry.createRegistry(8000);
+
+            System.out.println("Binding server...");
+            srv = new Server();
+            Naming.rebind("//localhost:8000/sharing-server", srv);
+        }
+        catch (RemoteException e) {
+            throw new RuntimeException(e);
+        }
+        catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+
+        System.out.println("Server started !");
+    }
 }

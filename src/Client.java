@@ -31,7 +31,7 @@ public class Client extends UnicastRemoteObject implements Client_itf {
     // initialization of the client layer
     public static void init() {
         try {
-            server = (Server_itf) Naming.lookup("//localhost:8000/sharing-server/");
+            server = (Server_itf) Naming.lookup("//localhost:8000/sharing-server");
         }
         catch (NotBoundException e) {
             throw new RuntimeException(e);
