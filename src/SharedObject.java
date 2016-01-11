@@ -6,7 +6,7 @@ import java.util.concurrent.locks.Condition;
 
 public class SharedObject implements Serializable, SharedObject_itf {
 
-    static final long serialVersionUID = 20151227171325L;
+    static final long serialVersionUID = 20160111161806L;
 
     public static enum CState_t {
         NL, // no local lock
@@ -62,13 +62,17 @@ public class SharedObject implements Serializable, SharedObject_itf {
         assert(_state != CState_t.WLT);
         assert(_state != CState_t.RLT_WLC);
 
-
         if (_state == CState_t.NL) {
             // Ask for a lock
             obj = Client.lock_write(_id);
         }
 
         _state = CState_t.WLT;
+
+       Transaction tr = Transaction.getCurrentTransaction();
+        if (tr != null) {
+            tr.push(this);
+        }
 
         _mutex.unlock();
     }
@@ -87,7 +91,6 @@ public class SharedObject implements Serializable, SharedObject_itf {
         }
 
         _unlock.signal();
-
     }
 
 
