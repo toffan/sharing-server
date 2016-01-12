@@ -60,7 +60,7 @@ public class Transaction {
         }
     }
 
-    public Object deepcopy(Object orig) {
+    public static Object deepcopy(Object orig) {
         Object copy = null;
         try {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
