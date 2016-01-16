@@ -41,10 +41,6 @@ public class ServerObject {
         _locks = new LinkedList<Client_itf>();
     }
 
-    public int getId() {
-        return _id;
-    }
-
     public Object get_obj() {
         return _obj;
     }
