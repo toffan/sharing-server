@@ -45,7 +45,7 @@ public class ServerObject {
         return _id;
     }
 
-    public Object getObj() {
+    public Object get_obj() {
         return _obj;
     }
 

@@ -56,7 +56,7 @@ public class Server extends UnicastRemoteObject implements Server_itf {
         ServerObject obj = s_objs.get(id);
         mutex.unlock();
         obj.lock_read(client);
-        return obj.getObj();
+        return obj.get_obj();
     }
 
     public Object lock_write(int id, Client_itf client) throws java.rmi.RemoteException {
@@ -64,7 +64,7 @@ public class Server extends UnicastRemoteObject implements Server_itf {
         ServerObject obj = s_objs.get(id);
         mutex.unlock();
         obj.lock_write(client);
-        return obj.getObj();
+        return obj.get_obj();
     }
 
     public static void main(String[] args) {
