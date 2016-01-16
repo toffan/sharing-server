@@ -11,16 +11,16 @@ public class ServerObject {
     };
 
     private class Invalider implements Runnable {
-        private Client_itf _c;
+        private Client_itf _clt;
         private int _id;
 
-        public Invalider(Client_itf c, int id) {
-            _c = c;
+        public Invalider(Client_itf clt, int id) {
+            _clt = clt;
         }
 
         public void run() {
             try {
-                _c.invalidate_reader(_id);
+                _clt.invalidate_reader(_id);
             }
             catch (RemoteException e) {
                 throw new RuntimeException(e);
@@ -29,35 +29,34 @@ public class ServerObject {
     }
 
 
-
-    private Object obj;
-    private int id;
-    private SState s_state;
-    private LinkedList<Client_itf> c_locks;
+    private Object _obj;
+    private int _id;
+    private SState _state;
+    private LinkedList<Client_itf> _locks;
 
     public ServerObject(int id, Object obj) {
-        this.obj = obj;
-        this.id = id;
-        this.s_state = SState.NL;
-        this.c_locks = new LinkedList<Client_itf>();
+        _obj = obj;
+        _id = id;
+        _state = SState.NL;
+        _locks = new LinkedList<Client_itf>();
     }
 
     public int getId() {
-        return id;
+        return _id;
     }
 
     public Object getObj() {
-        return this.obj;
+        return _obj;
     }
 
     public synchronized void lock_read(Client_itf c) {
         assert (c != null);
 
-        if (s_state == SState.WLT) {
-            assert (c_locks.size() == 1);
+        if (_state == SState.WLT) {
+            assert (_locks.size() == 1);
             try {
-                if (!c_locks.getFirst().equals(c)) {
-                    this.obj = c_locks.getFirst().reduce_lock(id);
+                if (!_locks.getFirst().equals(c)) {
+                    _obj = _locks.getFirst().reduce_lock(_id);
                 }
             }
             catch (RemoteException e) {
@@ -65,31 +64,31 @@ public class ServerObject {
             }
         }
 
-        s_state = SState.RLT;
+        _state = SState.RLT;
 
-        if (!c_locks.contains(c)) {
-            c_locks.add(c);
+        if (!_locks.contains(c)) {
+            _locks.add(c);
         }
     }
 
     public synchronized void lock_write(Client_itf clt) {
         assert (clt != null);
 
-        if (s_state == SState.WLT) {
-            assert (c_locks.size() == 1);
-            assert (!c_locks.getFirst().equals(clt));
+        if (_state == SState.WLT) {
+            assert (_locks.size() == 1);
+            assert (!_locks.getFirst().equals(clt));
             try {
-                this.obj = c_locks.getFirst().invalidate_writer(id);
+                _obj = _locks.getFirst().invalidate_writer(_id);
             }
             catch (RemoteException e) {
                 throw new RuntimeException(e);
             }
         }
-        else if (s_state == SState.RLT) {
+        else if (_state == SState.RLT) {
             LinkedList<Thread> invaliders = new LinkedList<Thread>();
-            for (Client_itf c: c_locks) {
+            for (Client_itf c: _locks) {
                 if (!c.equals(clt)) {
-                    Thread inv = new Thread(new Invalider(c, id));
+                    Thread inv = new Thread(new Invalider(c, _id));
                     inv.start();
                     invaliders.push(inv);
                 }
@@ -104,8 +103,8 @@ public class ServerObject {
             }
         }
 
-        c_locks.clear();
-        c_locks.add(clt);
-        s_state = SState.WLT;
+        _locks.clear();
+        _locks.add(clt);
+        _state = SState.WLT;
     }
 }
