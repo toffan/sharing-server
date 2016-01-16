@@ -10,6 +10,26 @@ public class ServerObject {
         NL,
     };
 
+    private class Invalider implements Runnable {
+        private Client_itf _c;
+        private int _id;
+
+        public Invalider(Client_itf c, int id) {
+            _c = c;
+        }
+
+        public void run() {
+            try {
+                _c.invalidate_reader(_id);
+            }
+            catch (RemoteException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+
+
     private Object obj;
     private int id;
     private SState s_state;
@@ -52,35 +72,40 @@ public class ServerObject {
         }
     }
 
-    public synchronized void lock_write(Client_itf c) {
-        assert (c != null);
+    public synchronized void lock_write(Client_itf clt) {
+        assert (clt != null);
 
         if (s_state == SState.WLT) {
             assert (c_locks.size() == 1);
+            assert (!c_locks.getFirst().equals(clt));
             try {
-                if (!c_locks.getFirst().equals(c)) {
-                    this.obj = c_locks.getFirst().invalidate_writer(id);
-                }
+                this.obj = c_locks.getFirst().invalidate_writer(id);
             }
             catch (RemoteException e) {
                 throw new RuntimeException(e);
             }
         }
         else if (s_state == SState.RLT) {
-            for (Client_itf c_lock: c_locks) {
-                try {
-                    if (!c_lock.equals(c)) {
-                        c.invalidate_reader(id);
-                    }
+            LinkedList<Thread> invaliders = new LinkedList<Thread>();
+            for (Client_itf c: c_locks) {
+                if (!c.equals(clt)) {
+                    Thread inv = new Thread(new Invalider(c, id));
+                    inv.start();
+                    invaliders.push(inv);
                 }
-                catch (RemoteException e) {
+            }
+            for (Thread inv: invaliders) {
+                try {
+                    inv.join();
+                }
+                catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
             }
         }
 
         c_locks.clear();
-        c_locks.add(c);
+        c_locks.add(clt);
         s_state = SState.WLT;
     }
 }
