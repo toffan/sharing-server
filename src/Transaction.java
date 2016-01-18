@@ -12,6 +12,7 @@ import java.lang.RuntimeException;
 
 public class Transaction {
 
+    // Required for friendship with Client
     public static final class Fingerprint { private Fingerprint() {} }
     private static final Fingerprint fingerprint = new Fingerprint();
 
