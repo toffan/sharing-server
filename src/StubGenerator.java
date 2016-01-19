@@ -9,11 +9,13 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashSet;
 import java.util.Arrays;
 
+
 public class StubGenerator {
 
     StubGenerator() {}
     private static final HashSet<String> forbidden_meths = new HashSet<>(
         Arrays.asList("lock_read", "lock_write", "unlock"));
+    private static int indent;
 
     private static String generate_params(Method meth, boolean decorate) {
         String code = "";
@@ -33,49 +35,77 @@ public class StubGenerator {
     }
 
     private static String generate_meth(Class cls, Method meth) {
-        // Signature
-        String sign = "";
-        sign += Modifier.toString(meth.getModifiers());
-        sign += " " + meth.getReturnType().getName();
-        sign += " " + meth.getName();
-        sign += "(" + generate_params(meth, true) + ") {\n";
-
-        // Code
         String code = "";
-        code += cls.getName() + " o = (" + cls.getName() + ") obj;\n";
-        if (!meth.getReturnType().equals(Void.TYPE)) {
-            code += "return ";
-        }
-        code += "o." + meth.getName();
-        code += "(" + generate_params(meth, false) + ");\n";
-        code += "}\n";
+        String line;
 
-        return sign + code;
+        // Signature
+        line = newline();
+        line += Modifier.toString(meth.getModifiers());
+        line += " " + meth.getReturnType().getName();
+        line += " " + meth.getName();
+        line += "(" + generate_params(meth, true) + ") {\n";
+        code += line;
+
+        // Cast
+        ++indent;
+        line = newline();
+        line += cls.getName() + " o = (" + cls.getName() + ") obj;\n";
+        code += line;
+
+        // Exec
+        line = newline();
+        if (!meth.getReturnType().equals(Void.TYPE)) {
+            line += "return ";
+        }
+        line += "o." + meth.getName();
+        line += "(" + generate_params(meth, false) + ");\n";
+        code += line;
+
+        // End
+        --indent;
+        line = newline() + "}\n";
+        code += line;
+
+        return code;
     }
 
     private static String generate_stub(Class cls) {
         assert (cls.getName().endsWith("_itf"));
         String name = cls.getName().substring(0, cls.getName().length()-4);
 
-        // Signature
-        String sign = "";
-        sign += "public class " + name + "_stub";
-
-        sign += " extends SharedObject";
-        sign += " implements " + name + "_itf, java.io.Serializable {\n";
-
-        // Code
         String code = "";
+        String line;
 
+        // Signature
+        line = newline();
+        line += "public class " + name + "_stub";
+        line += " extends SharedObject";
+        line += " implements " + name + "_itf, java.io.Serializable {\n";
+        code += line;
+
+        // Methods
+        ++indent;
         for (Method m : cls.getMethods()) {
             if (!forbidden_meths.contains(m.getName())) {
                 code += "\n" + generate_meth(cls, m);
             }
         }
+        --indent;
 
-        code += "}\n";
+        // End
+        line = newline();
+        line += "}\n";
+        code += line;
 
-        return sign + code;
+        return code;
+    }
+
+    private static String newline() {
+        String line = "";
+        for (int i = 0; i < indent; ++i) {
+            line += "    ";
+        }
+        return line;
     }
 
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
