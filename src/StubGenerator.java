@@ -52,7 +52,6 @@ public class StubGenerator {
     private static String generate_stub(Class cls) {
         assert (cls.getName().endsWith("_itf"));
         String name = cls.getName().substring(0, cls.getName().length()-4);
-        String src;
 
         // Signature
         String sign = "";
