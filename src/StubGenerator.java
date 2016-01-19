@@ -6,10 +6,14 @@ import java.io.PrintWriter;
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
 
+import java.util.HashSet;
+import java.util.Arrays;
 
 public class StubGenerator {
 
     StubGenerator() {}
+    private static final HashSet<String> forbidden_meths = new HashSet<>(
+        Arrays.asList("lock_read", "lock_write", "unlock"));
 
     private static String generate_params(Method meth, boolean decorate) {
         String code = "";
@@ -64,7 +68,9 @@ public class StubGenerator {
         String code = "";
 
         for (Method m : cls.getMethods()) {
-            code += generate_meth(cls, m) + "\n";
+            if (!forbidden_meths.contains(m.getName())) {
+                code += "\n" + generate_meth(cls, m);
+            }
         }
 
         code += "}\n";
