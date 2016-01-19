@@ -70,7 +70,6 @@ public class StubGenerator {
     }
 
     private static String generate_stub(Class cls) {
-        assert (cls.getName().endsWith("_itf"));
         String name = cls.getName().substring(0, cls.getName().length()-4);
 
         String code = "";
@@ -108,10 +107,13 @@ public class StubGenerator {
         return line;
     }
 
-    public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
-        PrintWriter writer = new PrintWriter("test.java", "UTF-8");
-        writer.println(generate_stub(Sentence_itf.class));
-        writer.close();
+    public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException, ClassNotFoundException {
+        for (String cls_name : args) {
+            assert (cls_name.endsWith("_itf"));
+            PrintWriter writer = new PrintWriter(cls_name.substring(0, cls_name.length()-4) + "_stub.java", "UTF-8");
+            writer.println(generate_stub(Class.forName(cls_name)));
+            writer.close();
+        }
     }
 }
 
