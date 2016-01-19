@@ -50,15 +50,16 @@ public class StubGenerator {
     }
 
     private static String generate_stub(Class cls) {
-        String name = cls.getName();
+        assert (cls.getName().endsWith("_itf"));
+        String name = cls.getName().substring(0, cls.getName().length()-4);
         String src;
 
         // Signature
         String sign = "";
-        sign += "public class " + name.substring(0, name.length()-4) + "_stub";
+        sign += "public class " + name + "_stub";
 
         sign += " extends SharedObject";
-        sign += " implements " + name + ", java.io.Serializable {\n";
+        sign += " implements " + name + "_itf, java.io.Serializable {\n";
 
         // Code
         String code = "";
