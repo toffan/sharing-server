@@ -38,7 +38,7 @@ public class Generator {
         String code = "";
 
         int nb_params = 0;
-        for (Class p: meth.getParameterTypes()) {
+        for (Class<?> p: meth.getParameterTypes()) {
             if (nb_params > 0) {
                 code += ", ";
             }
@@ -60,7 +60,7 @@ public class Generator {
         return line;
     }
 
-    private static void generate_meth(Class cls, Method meth) {
+    private static void generate_meth(Class<?> cls, Method meth) {
         String line;
 
         // Signature
@@ -87,7 +87,7 @@ public class Generator {
     }
 
     private static void generate_stub(String name) {
-        Class cls;
+        Class<?> cls;
         try {
             cls = Class.forName(name);
         }
@@ -130,7 +130,7 @@ public class Generator {
     }
 
     private static void generate_itf(String name) {
-        Class cls;
+        Class<?> cls;
         try {
             cls = Class.forName(name);
         }
