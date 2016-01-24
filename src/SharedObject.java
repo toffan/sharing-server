@@ -8,6 +8,10 @@ public class SharedObject implements Serializable, SharedObject_itf {
 
     static final long serialVersionUID = 20160111161806L;
 
+    // Required for friendship with Transaction
+    public static final class Fingerprint { private Fingerprint() {} }
+    private static final Fingerprint fingerprint = new Fingerprint();
+
     public static enum CState_t {
         NL, // no local lock
         RLC, // read lock cached
