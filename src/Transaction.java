@@ -55,7 +55,7 @@ public class Transaction {
         }
     }
 
-    public void push(SharedObject so) {
+    public void push(SharedObject.Fingerprint fingerprint, SharedObject so) {
         if (_init.get(so.get_id()) == null) {
             _init.put(so.get_id(), deepcopy(so.obj));
         }

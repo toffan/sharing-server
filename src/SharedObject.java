@@ -75,7 +75,7 @@ public class SharedObject implements Serializable, SharedObject_itf {
 
         Transaction tr = Transaction.getCurrentTransaction();
         if (tr != null) {
-            tr.push(this);
+            tr.push(fingerprint, this);
         }
 
         _mutex.unlock();
