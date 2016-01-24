@@ -73,7 +73,7 @@ public class SharedObject implements Serializable, SharedObject_itf {
 
         _state = CState_t.WLT;
 
-       Transaction tr = Transaction.getCurrentTransaction();
+        Transaction tr = Transaction.getCurrentTransaction();
         if (tr != null) {
             tr.push(this);
         }
