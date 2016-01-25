@@ -65,7 +65,7 @@ public class SharedObject implements Serializable, SharedObject_itf {
         assert(_state != CState_t.RLT_WLC);
 
 
-        if (_state == CState_t.NL) {
+        if (_state == CState_t.NL || _state == CState_t.RLC) {
             // Ask for a lock
             obj = Client.lock_write(_id);
         }
