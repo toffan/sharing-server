@@ -71,7 +71,14 @@ public class Client extends UnicastRemoteObject implements Client_itf {
         assert(id != -1);
 
         mutex.lock();
-        SharedObject so = objects.get(id);
+        SharedObject so = null;
+        if (objects.get(id) != null) {
+            so = objects.get(id);
+        }
+        else {
+            so = new SharedObject(id);
+            objects.put(id, so);
+        }
         mutex.unlock();
 
         return so;
