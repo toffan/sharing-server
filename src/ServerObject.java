@@ -46,6 +46,7 @@ public class ServerObject {
     }
 
     public synchronized void lock_read(Client_itf c) {
+        System.out.println("" + _id + ": lock_read");
         assert (c != null);
 
         if (_state == SState.WLT) {
@@ -68,9 +69,11 @@ public class ServerObject {
     }
 
     public synchronized void lock_write(Client_itf clt) {
+        System.out.println("" + _id + ": lock_write");
         assert (clt != null);
 
         if (_state == SState.WLT) {
+        System.out.println("" + _id + ": inv_writer");
             assert (_locks.size() == 1);
             assert (!_locks.getFirst().equals(clt));
             try {
@@ -81,6 +84,7 @@ public class ServerObject {
             }
         }
         else if (_state == SState.RLT) {
+        System.out.println("" + _id + ": inv_readers");
             LinkedList<Thread> invaliders = new LinkedList<Thread>();
             for (Client_itf c: _locks) {
                 if (!c.equals(clt)) {

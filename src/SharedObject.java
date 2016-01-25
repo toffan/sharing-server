@@ -38,6 +38,7 @@ public class SharedObject implements Serializable, SharedObject_itf {
 
     // invoked by the user program on the client node
     public void lock_read() {
+        System.out.println("" + _id + ": lock_read");
         _mutex.lock();
 
         assert(_state != CState_t.RLT);
@@ -56,6 +57,7 @@ public class SharedObject implements Serializable, SharedObject_itf {
 
     // invoked by the user program on the client node
     public void lock_write() {
+        System.out.println("" + _id + ": lock_write");
         _mutex.lock();
 
         assert(_state != CState_t.RLT);
@@ -75,6 +77,7 @@ public class SharedObject implements Serializable, SharedObject_itf {
 
     // invoked by the user program on the client node
     public synchronized void unlock() {
+        System.out.println("" + _id + ": unlock");
         _mutex.lock();
         assert(_state != CState_t.NL);
         assert(_state != CState_t.RLC);
@@ -95,6 +98,7 @@ public class SharedObject implements Serializable, SharedObject_itf {
 
     // callback invoked remotely by the server
     public synchronized Object reduce_lock() {
+        System.out.println("" + _id + ": reduce_lock");
         _mutex.lock();
         assert(_state != CState_t.NL);
         assert(_state != CState_t.RLC);
@@ -114,6 +118,7 @@ public class SharedObject implements Serializable, SharedObject_itf {
 
     // callback invoked remotely by the server
     public synchronized void invalidate_reader() {
+        System.out.println("" + _id + ": inv_reader");
         _mutex.lock();
         assert(_state != CState_t.NL);
         assert(_state != CState_t.WLT);
@@ -131,6 +136,7 @@ public class SharedObject implements Serializable, SharedObject_itf {
     }
 
     public synchronized Object invalidate_writer() {
+        System.out.println("" + _id + ": inv_writer");
         _mutex.lock();
         assert(_state != CState_t.NL);
         assert(_state != CState_t.RLT);
