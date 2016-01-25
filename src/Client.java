@@ -12,7 +12,7 @@ import java.util.concurrent.locks.Condition;
 
 public class Client extends UnicastRemoteObject implements Client_itf {
 
-    static final long serialVersionUID = 20151227171455L;
+    static final long serialVersionUID = 20160111151730L;
 
     private static Server_itf server;
     private static HashMap<Integer, SharedObject> objects;
@@ -21,6 +21,10 @@ public class Client extends UnicastRemoteObject implements Client_itf {
 
     public Client() throws RemoteException {
         super();
+    }
+
+    public static SharedObject get_obj(Transaction.Fingerprint f, Integer i) {
+        return objects.get(i);
     }
 
 

@@ -6,7 +6,11 @@ import java.util.concurrent.locks.Condition;
 
 public class SharedObject implements Serializable, SharedObject_itf {
 
-    static final long serialVersionUID = 20151227171325L;
+    static final long serialVersionUID = 20160111161806L;
+
+    // Required for friendship with Transaction
+    public static final class Fingerprint { private Fingerprint() {} }
+    private static final Fingerprint fingerprint = new Fingerprint();
 
     public static enum CState_t {
         NL, // no local lock
@@ -41,17 +45,21 @@ public class SharedObject implements Serializable, SharedObject_itf {
         System.out.println("" + _id + ": lock_read");
         _mutex.lock();
 
-        assert(_state != CState_t.RLT);
-        assert(_state != CState_t.WLT);
-        assert(_state != CState_t.RLT_WLC);
+        Transaction tr = Transaction.getCurrentTransaction();
+        if (tr == null || !tr.isActive() || tr.locked(this) == null) {
+            assert(_state != CState_t.RLT);
+            assert(_state != CState_t.WLT);
+            assert(_state != CState_t.RLT_WLC);
 
-        if (_state == CState_t.NL) {
-            // Ask for a lock
-            obj = Client.lock_read(_id);
+            if (_state == CState_t.NL) {
+                // Ask for a lock
+                obj = Client.lock_read(_id);
+            }
+            _state = (_state == CState_t.WLC) ? CState_t.RLT_WLC : CState_t.RLT;
         }
-
-        _state = (_state == CState_t.WLC) ? CState_t.RLT_WLC : CState_t.RLT;
-
+        if (tr != null) {
+            tr.lock(fingerprint, this);
+        }
         _mutex.unlock();
     }
 
@@ -60,17 +68,23 @@ public class SharedObject implements Serializable, SharedObject_itf {
         System.out.println("" + _id + ": lock_write");
         _mutex.lock();
 
-        assert(_state != CState_t.RLT);
-        assert(_state != CState_t.WLT);
-        assert(_state != CState_t.RLT_WLC);
+        Transaction tr = Transaction.getCurrentTransaction();
+        if (tr == null || !tr.isActive() || tr.locked(this) == null) {
+            // Not in transaction or not locked
+            assert(_state != CState_t.RLT);
+            assert(_state != CState_t.WLT);
+            assert(_state != CState_t.RLT_WLC);
 
-
-        if (_state == CState_t.NL || _state == CState_t.RLC) {
-            // Ask for a lock
-            obj = Client.lock_write(_id);
+            if (_state == CState_t.NL || _state == CState_t.RLC) {
+                // Ask for a lock
+                obj = Client.lock_write(_id);
+            }
+            _state = CState_t.WLT;
         }
-
-        _state = CState_t.WLT;
+        else  if (tr != null) {
+            tr.push(fingerprint, this);
+            tr.lock(fingerprint, this);
+        }
 
         _mutex.unlock();
     }
@@ -83,16 +97,23 @@ public class SharedObject implements Serializable, SharedObject_itf {
         assert(_state != CState_t.RLC);
         assert(_state != CState_t.WLC);
 
-        if (_state == CState_t.RLT) {
-            _state = CState_t.RLC;
+        Transaction tr = Transaction.getCurrentTransaction();
+        if (tr != null && tr.isActive()) {
+            // It's not a real unlock because we are in the middle of a
+            // transaction
+            tr.unlock(fingerprint, this);
         }
-        else { // _state == WLT || _state == CState_t.RLT_WLC
-            _state = CState_t.WLC;
+        else {
+            if (_state == CState_t.RLT) {
+                _state = CState_t.RLC;
+            }
+            else { // _state == WLT || _state == CState_t.RLT_WLC
+                _state = CState_t.WLC;
+            }
         }
 
         _unlock.signal();
         _mutex.unlock();
-
     }
 
 
