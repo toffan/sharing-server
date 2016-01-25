@@ -18,10 +18,14 @@ public class Transaction {
 
     private static Transaction current = null;
     private HashMap<Integer, Object> _init;
+    private HashMap<Integer, Boolean> _locked;
+    private boolean _active;
 
 
     public Transaction() {
         _init = new HashMap<Integer, Object>();
+        _locked = new HashMap<Integer, Boolean>();
+        _active = false;
     }
 
     public static Transaction getCurrentTransaction() {
@@ -30,29 +34,42 @@ public class Transaction {
 
     // indique si l'appelant est en mode transactionnel
     public boolean isActive() {
-        return this == current;
+        return _active;
     }
 
     // demarre une transaction (passe en mode transactionnel)
     public void start() {
         assert (current == null);
+        assert (_active == false);
         current = this;
+        _active = true;
     }
 
     // termine une transaction et passe en mode non transactionnel
     public boolean commit() {
         assert (current != null);
-        current = null;
+        assert (_active == true);
+        _active = false;
+        for (Entry<Integer, Boolean> entry: _locked.entrySet()) {
+            Client.get_obj(fingerprint, entry.getKey()).unlock();
+        }
         _init.clear();
+        _locked.clear();
+        current = null;
         return true;
     }
 
     // abandonne et annule une transaction (et passe en mode non transactionnel)
     public void abort() {
         assert (current != null);
+        assert (_active == true);
+        _active = false;
         for (Entry<Integer, Object> entry: current._init.entrySet()) {
             Client.get_obj(fingerprint, entry.getKey()).obj = entry.getValue();
         }
+        _init.clear();
+        _locked.clear();
+        current = null;
     }
 
     public void push(SharedObject.Fingerprint fingerprint, SharedObject so) {
@@ -60,6 +77,21 @@ public class Transaction {
             _init.put(so.get_id(), deepcopy(so.obj));
         }
     }
+
+    public void lock(SharedObject.Fingerprint fingerprint, SharedObject so) {
+        assert (_locked.get(so.get_id()) != true);
+        _locked.put(so.get_id(), true);
+    }
+
+    public void unlock(SharedObject.Fingerprint fingerprint, SharedObject so) {
+        assert (_locked.get(so.get_id()) == true);
+        _locked.put(so.get_id(), false);
+    }
+
+    public Boolean locked(SharedObject so) {
+        return _locked.get(so.get_id());
+    }
+
 
     public static Object deepcopy(Object orig) {
         Object copy = null;
